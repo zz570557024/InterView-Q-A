@@ -2055,3 +2055,90 @@ ES6 考虑到了这一点，推出了两种新的数据结构：`WeakSet` 和 `W
 一句话：nginx会给你分配服务器压力小的去访问
 
 **nginx通过proxy_pass_http 配置代理站点，upstream实现负载均衡。**
+
+<!-- ## 自我介绍
+
+我叫...，来自于西北工业大学软件与微电子学院，软件工程专业。本科毕业于西北工业大学理学院，材料物理与化学专业。前端学习开始于去年的7月份，一直到现在。期间实习于上海聪牛金融信息服务有限公司，做前端开发，现已实习结束。
+技术方面，项目中hjs框架使用vue较多，使用过mpvue,nodejs,angularjs和jquery。开发过pc端，移动端和小程序。 -->
+
+## babel插件
+
+babel 转译语法需要一些plugin
+如 react,es2015,stage-0,stage-1等等
+
+其中的 es2015 表示 babel会加载 es6 相关的编译模块
+
+然后 stage-0 表示的是什么呢？
+stage 系列集合了一些对 es7 的草案支持的插件，由于是草案，所以作为插件的形式提供。
+
+* stage-0 - Strawman: just an idea, possible Babel plugin.
+* stage-1 - Proposal: this is worth working on.
+* stage-2 - Draft: initial spec.
+* stage-3 - Candidate: complete spec and initial browser implementations.
+* stage-4 - Finished: will be added to the next yearly release.
+
+stage 是向下兼容 0>1>2>3>4 所包含的插件数量依次减少
+
+babel polyfill 有三种：
+
+* babel-runtime
+* babel-plugin-transform-runtime
+* babel-polyfill
+
+babel-runtime和 babel-plugin-transform-runtime的区别是，相当一前者是手动挡而后者是自动挡，每当要转译一个api时都要手动加上require('babel-runtime')，而babel-plugin-transform-runtime会由工具自动添加，主要的功能是为api提供沙箱的垫片方案，不会污染全局的api，因此适合用在第三方的开发产品中。
+
+runtime转换器插件主要做了三件事：
+
+* 当你使用generators/async方法、函数时自动调用babel-runtime/regenerator
+* 当你使用ES6 的Map或者内置的东西时自动调用babel-runtime/core-js
+* 移除内联babel helpers并替换使用babel-runtime/helpers来替换
+
+transform-runtime优点
+
+* 不会污染全局变量
+* 多次使用只会打包一次
+* 依赖统一按需引入,无重复引入,无多余引入
+
+transform-runtime缺点：
+ 
+* 不支持实例化的方法Array.includes(x) 就不能转化
+* 如果使用的API用的次数不是很多，那么transform-runtime 引入polyfill的包会比不是transform-runtime 时大
+
+总的来说一句话，你可以使用内置的一些东西例如Promise,Set,Symbol等，就像使用无缝的使用polyfill,来使用babel 特性，并且无全局污染、极高代码库适用性。
+
+### babel-polyfill
+babel-polyfill则是通过改写全局prototype的方式实现，比较适合单独运行的项目。
+开启babel-polyfill的方式，可以直接在代码中require，或者在webpack的entry中添加，也可以在babel的env中设置useBuildins为true来开启。
+但是babel-polyfill会有近100K，
+打包后代码冗余量比较大，
+对于现代的浏览器,有些不需要polyfill，造成流量浪费
+污染了全局对象
+
+## angular-vue
+
+1. angularjs官方声明不在维护；
+2. 顶级对象$scope让逻辑变得混乱；
+3. vue + vue-router + vuex 工具链强大；
+4. angular脏检查影响性能；vue 组件化开发；
+
+## 快排
+
+1、先从数列中取出一个数作为基准数
+
+2、分区过程，将比这个数大的数全放到它的右边，小于或等于它的数全放到它的左边
+
+3、再对左右区间重复第二步，直到各区间只有一个数
+
+### 二分插入排序
+二分插入排序也是一种插入排序，原理和插入排序是一样的，但是之所以二分是快速查找出要插入的位置；
+插入排序是基于比较的排序。所谓的基于比较，就是通过比较数组中的元素，看谁大谁小，根据结果来调整元素的位置。
+
+因此，对于这类排序，就有两种基本的操作：①比较操作； ②交换操作
+
+## webpack跨域代理原理
+
+这个代理实际上是利用http-proxy-middleware这个插件完成的，具体到这个插件的运行机制，由于是英文再加上能力有限就没深究了。但我想探究的是这种代理方式实际上是如何做到的，我看网上有人说实际上就是我们的本地服务器将请求转发给了目标服务器。之所以出现跨域是因为浏览器有同源策略的限制，但服务器是没有的，所以这种代理方式能够实现的机制大体就是：
+
+本地服务器 --》 代理 --》目标服务器 --》拿到数据后通过代理伪装成本地服务请求的返回值 ---》然后浏览器就顺利收到了我们想要的数据
+
+这是我的简单理解，按这个理解来说的话只要服务器允许跨域，任何人都能够拿到它的数据吗？那样同源策略不就大大弱化了吗？目前对这个问题还不是太理解，希望有想法的小伙伴留言指正！
