@@ -574,9 +574,10 @@ Vue在判断更新前后指针是否指向同一个节点，其实不要求它�
 
 ### **http与https区别**
 
-**HTTP**：是互联网上应用最为广泛的一种网络协议，是一个客户端和服务器端请求和应答的标准（TCP），用于从WWW服务器传输超文本到本地浏览器的传输协议，它可以使浏览器更加高效，使网络传输减少。
-
-**HTTPS**：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即HTTP下加入SSL层，HTTPS的安全基础是SSL，因此加密的详细内容就需要SSL。
+1. https协议需要到ca申请证书，一般免费证书较少，因而需要一定费用。
+2. http是超文本传输协议，信息是明文传输，https则是具有安全性的ssl加密传输协议。
+3. http和https使用的是完全不同的连接方式，用的端口也不一样，前者是80，后者是443。
+4. http的连接很简单，是无状态的；HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，比http协议安全。
 
 HTTPS协议的主要作用可以分为两种：
 
@@ -598,6 +599,8 @@ HTTPS和HTTP的区别主要如下：
 4. http的连接很简单，是无状态的；HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，比http协议安全。
 
 ### http2.0
+[HTTP2.0在线测试](https://http2.akamai.com/demo)
+
 HTTP 2.0是在SPDY（An experimental protocol for a faster web, The Chromium Projects）基础上形成的下一代互联网通信协议。HTTP/2 的目的是通过支持请求与响应的多路复用来较少延迟，通过压缩HTTPS首部字段将协议开销降低，同时增加请求优先级和服务器端推送的支持。
 
 * 二进制分帧层，是HTTP 2.0性能增强的核心。
@@ -2142,3 +2145,357 @@ babel-polyfill则是通过改写全局prototype的方式实现，比较适合单
 本地服务器 --》 代理 --》目标服务器 --》拿到数据后通过代理伪装成本地服务请求的返回值 ---》然后浏览器就顺利收到了我们想要的数据
 
 这是我的简单理解，按这个理解来说的话只要服务器允许跨域，任何人都能够拿到它的数据吗？那样同源策略不就大大弱化了吗？目前对这个问题还不是太理解，希望有想法的小伙伴留言指正！
+
+## Object.defineProperty()
+
+Object.defineProperty() 方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。
+
+对象里目前存在的属性描述符= 有两种主要形式：数据描述符和存取描述符。数据描述符是一个具有值的属性，该值可能是可写的，也可能不是可写的。存取描述符是由getter-setter函数对描述的属性。描述符必须是这两种形式之一；不能同时是两者。
+
+### document.createDocumentFragment()
+DocumentFragments 是DOM节点。它们不是主DOM树的一部分。通常的用例是创建文档片段，将元素附加到文档片段，然后将文档片段附加到DOM树。在DOM树中，文档片段被其所有的子元素所代替。
+
+因为文档片段存在于内存中，并不在DOM树中，所以将子元素插入到文档片段时不会引起页面回流(reflow)(对元素位置和几何上的计算)。因此，使用文档片段document fragments 通常会起到优化性能的作用(better performance)。
+
+### RegExp.$n
+RegExp.$1...$9属性用于返回正则表达式模式中某个子表达式匹配的文本。
+
+正则表达式中每个小括号内的部分表达式就是一个子表达式。
+
+该属性是RegExp全局对象的一个只读属性，所有主流浏览器均支持该属性。
+
+### reduce
+reduce 为数组中的每一个元素依次执行回调函数
+reduce的用处多多，比如计算数组求和是比较普通的方法了，还有一种比较好用的妙处是可以进行二维数组的展平(flatten)
+
+### 语法
+`Object.defineProperty(obj, prop, descriptor)`
+Object.defineProperty 是定义key为Symbol的属性的方法之一。
+
+## 类Vue Mvvm原理
+
+ vue.js 则是采用数据劫持结合发布者-订阅者模式的方式，通过Object.defineProperty()来劫持各个属性的setter，getter，在数据变动时发布消息给订阅者，触发相应的监听回调。
+
+1. Observer：能够对数据对象的所有属性进行监听，如有变动可拿到最新值并通知订阅者
+
+Observer的核心是通过Obeject.defineProperty()来监听数据的变动，这个函数内部定义setter和getter，每当数据发生变化，就会触发setter。这时候Observer就要通知订阅者，订阅者就是Watcher。
+
+2. Compile：对每个元素节点的指令进行扫描和解析，根据指令模板替换数据，以及绑定相应的更新函数
+
+Compile主要做的事情是解析模板指令，将模板中的变量替换成数据，然后初始化渲染页面视图，并将每个指令对应的节点绑定更新函数，添加监听数据的订阅者，一旦数据有变动，收到通知，更新视图。
+
+3. Watcher：作为连接Observer和Compile的桥梁，能够订阅并收到每个属性变动的通知，执行指令绑定的相应回调函数，从而更新视图
+
+Watcher订阅者作为Observer和Compile之间通信的桥梁，主要做的事情是：
+
+在自身实例化时往属性订阅器(dep)里面添加自己
+自身必须有一个update()方法
+待属性变动dep.notice()通知时，能调用自身的update()方法，并触发Compile中绑定的回调
+
+### 数据劫持
+（所谓数据劫持就是给对象增加get,set）
+* 观察对象，给对象增加Object.defineProperty
+
+* vue特点是不能新增不存在的属性 不存在的属性没有get和set
+
+* 深度响应 因为每次赋予一个新对象时会给这个新对象增加defineProperty(数据劫持)
+
+**通过递归observe(val)进行数据劫持添加上了get和set，递归继续向a里面的对象去定义属性，**
+
+### 数据代理
+数据代理就是让我们每次拿data里的数据时，不用每次都写一长串，如mvvm._data.a.b这种，我们其实可以直接写成mvvm.a.b这种显而易见的方式
+
+### 数据编译
+编译一下了，把{{}}里面的内容解析出来
+但是我们手动修改后的数据并没有在页面上发生改变
+
+### 发布订阅
+发布订阅主要靠的就是数组关系，订阅就是放入函数，发布就是让数组里的函数执行
+
+### 数据更新视图
+现在我们要订阅一个事件，当数据改变需要重新刷新视图，这就需要在replace替换的逻辑里来处理
+通过new Watcher把数据订阅一下，数据一变就执行改变内容的操作
+
+### 双向数据绑定
+
+### vue深入响应式原理
+Vue 最独特的特性之一，是其非侵入性的响应式系统。数据模型仅仅是普通的 JavaScript 对象。而当你修改它们时，视图会进行更新。
+
+当你把一个普通的 JavaScript 对象传给 Vue 实例的 data 选项，Vue 将遍历此对象所有的属性，并使用 Object.defineProperty 把这些属性全部转为 getter/setter。
+
+这些 getter/setter 对用户来说是不可见的，但是在内部它们让 Vue 追踪依赖，在属性被访问和修改时通知变化。
+
+每个组件实例都有相应的 watcher 实例对象，它会在组件渲染的过程中把属性记录为依赖，之后当依赖项的 setter 被调用时，会通知 watcher 重新计算，从而致使它关联的组件得以更新。
+
+受现代 JavaScript 的限制 (以及废弃 Object.observe)，Vue 不能检测到对象属性的添加或删除。由于 Vue 会在初始化实例时对属性执行 getter/setter 转化过程，所以属性必须在 data 对象上存在才能让 Vue 转换它，这样才能让它是响应的。
+
+由于 Vue 不允许动态添加根级响应式属性，所以你必须在初始化实例前声明根级响应式属性，哪怕只是一个空值
+
+Vue 异步执行 DOM 更新。只要观察到数据变化，Vue 将开启一个队列，并缓冲在同一事件循环中发生的所有数据改变。如果同一个 watcher 被多次触发，只会被推入到队列中一次。这种在缓冲时去除重复数据对于避免不必要的计算和 DOM 操作上非常重要。然后，在下一个的事件循环“tick”中，Vue 刷新队列并执行实际 (已去重的) 工作。Vue 在内部尝试对异步队列使用原生的 Promise.then 和 MessageChannel，如果执行环境不支持，会采用 setTimeout(fn, 0) 代替。
+
+## JQuery 向下展开收起动画( slideDown(),slideUp() )
+`$('#div1').slideDown(1000);`  //向下展开，下拉。1000毫秒，表示动画展开过程时间。
+`$('#div1').slideUp(1000);`  //向上收起
+`$('#div1').slideToggle(1000);`  //合成展开收起
+
+## 跨文档传输消息(XDM) H5
+跨文档传输消息(XDM)也就是跨域传递消息，是实现跨域的另一种方法
+XDM的核心就是浏览器的postMessage()方法
+在XDM中，“另一个地方”就是指包含在当前页面的iframe元素，或者由当前页面弹出的窗口。
+
+postMessage()方法就是用来与不同域之间的窗口进行通信的API，之所以只能与内嵌框架或在当前页面的弹出窗口进行通信，是因为要使用postMessage()的前提就是要获得接收页面所在的窗口对象，在该对象上调用postMessage方法。
+
+window.postMessage() 方法可以安全地实现跨源通信。通常，对于两个不同页面的脚本，只有当执行它们的页面位于具有相同的协议（通常为https），端口号（443为https的默认值），以及主机  (两个页面的模数 Document.domain设置为相同的值) 时，这两个脚本才能相互通信。window.postMessage() 方法提供了一种受控机制来规避此限制，只要正确的使用，这种方法就很安全。
+
+window.postMessage() 方法被调用时，会在所有页面脚本执行完毕之后（e.g., 在该方法之后设置的事件、之前设置的timeout 事件,etc.）向目标窗口派发一个  MessageEvent 消息。 该MessageEvent消息有四个属性需要注意： message 属性表示该message 的类型； data 属性为 window.postMessage 的第一个参数；origin 属性表示调用window.postMessage() 方法时调用页面的当前状态； source 属性记录调用 window.postMessage() 方法的窗口信息。
+
+## DNS完成域名到 IP 地址的映射，RARP实现MAC到IP地址的映射,ARP实现IP到MAC地址的映射
+
+## 转义字符
+
+如HTML转义符、java 转义符、xml 转义符、 oracle 转义符、sql 转义符 、sqlserver 转义符、php 转义符、asp 转义符、vb转义符、 javascript 转义符等等，还有网址中的百分号。
+例如，HTML的`&lt; &gt;&amp;&quot;&copy;`分别是<，>，&，"，©;的转义字符
+XML只有5个转义符: `&lt; &gt;&amp; &quot; &apos;`
+
+## window.requestAnimationFrame
+
+window.requestAnimationFrame() 方法告诉浏览器您希望执行动画并请求浏览器在下一次重绘之前调用指定的函数来更新动画。该方法使用一个回调函数作为参数，这个回调函数会在浏览器重绘之前调用。
+
+## localStorage
+
+### 只能将数据存储为字符串类型
+
+### 不可以设置有效期
+
+## js的arguments
+
+## dom的操作
+
+创建：
+
+```bash
+createDocumentFragment()    //创建一个DOM片段
+createElement()   //创建一个具体的元素
+createTextNode()   //创建一个文本节点
+```
+
+添加：
+
+```bash
+appendChild()
+```
+
+移出：
+
+```bash
+removeChild()
+```
+
+替换：
+
+```bash
+replaceChild()
+```
+
+插入：
+
+```bash
+insertBefore()
+```
+
+复制：
+
+```bash
+cloneNode(true)
+```
+
+查找：
+
+```bash
+getElementsByTagName()    //通过标签名称
+getElementsByClassName()    //通过标签名称
+getElementsByName()    //通过元素的Name属性的值
+getElementById()    //通过元素Id，唯一性
+```
+
+## HTML5 - 使用地理定位
+
+使用 getCurrentPosition() 方法来获得用户的位置。
+
+## Promise实现之q.js
+
+q.js在nodejs里是一个非常流行的promise库
+
+q.js跟async要解决的问题差不多，都是解决回调函数的嵌套问题,避免嵌套层级太深导致一系列的问题.只是q.js是以promise来实现回调的扁平化,而async则是通过流程来控制多个异步回调的处理.
+
+## cellspacing：单元格的边框之间的距离,cellpadding：单元格的文字与其边框的距离 
+
+## js原型的理解
+## 闭包的理解
+## 前端语言体系三要素
+## insertBefore方法
+
+在某个元素之前插入一个新的元素；
+
+在调用此方法时，必须告诉它三件事：
+1.想插入的新元素(newElement).
+2.想把这个新元素插入到哪个现有元素(targetElement)的前面。
+3.这两个共同的父元素(parentElement);
+
+## 浏览器端的EventLoop和Node的EventLoop
+## 如何判断Array
+
+1. Array.isArray();
+2. instanceof操作符
+
+```bash
+var arrayStr=new Array("1","2","3","4","5");    
+alert(arrayStr instanceof Array); 
+```
+
+3. Object.prototype.toString.call(obj) === '[object Array]';
+
+## CSS第三方库的原理
+## utf-8和unicode区别
+
+* Unicode 是「字符集」
+* UTF-8 是「编码规则」
+
+* 字符集：为每一个「字符」分配一个唯一的 ID（学名为码位 / 码点 / Code Point）
+* 编码规则：将「码位」转换为字节序列的规则（编码/解码 可以理解为 加密/解密 的过程）
+
+广义的 Unicode 是一个标准，定义了一个字符集以及一系列的编码规则，即 Unicode 字符集和 UTF-8、UTF-16、UTF-32 等等编码……
+
+Unicode 字符集为每一个字符分配一个码位，例如「知」的码位是 30693，记作 U+77E5（30693 的十六进制为 0x77E5）。
+
+UTF-8 顾名思义，是一套以 8 位为一个编码单位的可变长编码。会将一个码位编码为 1 到 4 个字节
+
+## HTML5点击延迟事件
+
+### 为什么会存在延迟？
+
+Google开发者文档中有提到：
+
+> mobile browsers will wait approximately 300ms from the time that you tap the button to fire the click event. > The reason for this is that the browser is waiting to see if you are actually performing a double tap.
+
+移动浏览器为什么会设置300毫秒的等待时间呢？这与双击缩放的方案有关。平时我们有可能已经注意到了，双击缩放，即用手指在屏幕上快速点击两次，可以看到内容或者图片放大，再次双击，浏览器会将网页缩放至原始比例。
+
+### 方法一：静止缩放
+
+`<meta name="viewport" content="width=device-width user-scalable= 'no'">`
+
+### 方法二：fastclick.js
+
+FastClick 是 FT Labs 专门为解决移动端浏览器 300 毫秒点击延迟问题所开发的一个轻量级的库。简而言之，FastClick 在检测到touchend事件的时候，会通过 DOM 自定义事件立即触发一个模拟click事件，并把浏览器在 300 毫秒之后真正触发的click事件阻止掉。
+
+### 方法三：指针事件
+
+指针事件最初由微软提出，现已进入 W3C 规范的候选推荐标准阶段 (Candidate Recommendation)。指针事件是一个新的 web 事件系列，相应的规范旨在使用一个单独的事件模型，对所有输入类型，包括鼠标 (mouse)、触摸 (touch)、触控 (stylus) 等，进行统一的处理。
+
+      指针事件 (Pointer Events) 目前兼容性不太好，不知道在以后会不会更加支持。
+
+## 前端性能优化的方法
+## 前端性能工具
+
+## TCP连接3次握手，如果第三次的握手服务端没收到呢？
+
+当Client端收到Server的SYN+ACK应答后，其状态变为ESTABLISHED，并发送ACK包给Server；
+
+如果此时ACK在网络中丢失，那么Server端该TCP连接的状态为SYN_RECV，并且 **依次等待3秒、6秒、12秒后重新发送SYN+ACK包** ，以便Client重新发送ACK包。
+
+Server重发SYN+ACK包的次数，可以通过设置/proc/sys/net/ipv4/tcp_synack_retries修改，默认值为5。
+
+**如果重发指定次数后，仍然未收到ACK应答，那么一段时间后，Server自动关闭这个连接。**
+但是Client认为这个连接已经建立，如果Client端向Server写数据，Server端将以RST包响应，方能感知到Server的错误。
+
+## 块级元素与行内元素的区别
+
+1. 块级元素会独占一行，其宽度自动填满其父元素宽度；行内元素不会独占一行，相邻的行内元素会排列在同一行，直至一行排不下才会换行，其宽度随元素的内容而变化。
+
+2. 块级元素可以包含行内元素和块级元素；行内元素不能包含块级元素。
+
+3. 行内元素设置width、height、margin-top、margin-bottom、padding-top、padding-bottom无效。
+
+### 块级元素与行内元素的转换
+
+display:inline-block;
+display:inline;
+display:block;
+
+## userData
+
+IE浏览器可以使用userData来存储数据，容量可达到640K，这种方案是很可靠的，不需要安装额外的插件。缺点：它仅在IE下有效。
+
+## jQuery_ajax数据类型
+
+$.ajax()函数依赖服务器提供的信息来处理返回的数据。如果服务器报告说返回的数据是XML，那么返回的结果就可以用普通的XML方法或者jQuery的选择器来遍历。如果见得到其他类型，比如HTML，则数据就以文本形式来对待。
+
+通过dataType选项还可以指定其他不同数据处理方式。除了单纯的XML，还可以指定 html、json、jsonp、script或者text。
+
+## B+树
+
+B+树和二叉树、平衡二叉树一样，都是经典的数据结构。B+树由B树和索引顺序访问方法（ISAM，是不是很熟悉？对，这也是MyISAM引擎最初参考的数据结构）演化而来，但是在实际使用过程中几乎已经没有使用B树的情况了。
+
+B+树的定义十分复杂，因此只简要地介绍B+树：B+树是为磁盘或其他直接存取辅助设备而设计的一种平衡查找树，在B+树中，所有记录节点都是按键值的大小顺序存放在同一层的叶节点中，各叶节点指针进行连接。
+
+### B+树的特性
+
+1. 所有关键字都出现在叶子结点的链表中（稠密索引），且链表中的关键字恰好是有序的；
+
+2. 不可能在非叶子结点命中；
+
+3. 非叶子结点相当于是叶子结点的索引（稀疏索引），叶子结点相当于是存储（关键字）数据的数据层；
+
+4. 更适合文件索引系统；
+
+## 深度遍历dom节点
+
+## 事件委托是什么、实现原理是什么、使用它有什么好处
+
+## 标准 DOM 事件的发生流程”
+
+## 声明即执行的函数表达式
+
+## 对 DOM 树中节点关系的表示方式比较清楚，关键属性是 childNodes 和 children
+
+## EventTarget.addEventListener()
+
+addEventListener() 是 W3C DOM 规范中提供的注册事件监听器的方法。它的优点包括：
+
+* 它允许给一个事件注册多个监听器。 特别是在使用AJAX库，JavaScript模块，或其他需要第三方库/插件的代码。
+* 它提供了一种更精细的手段控制 listener 的触发阶段。（即可以选择捕获或者冒泡）。
+* 它对任何 DOM 元素都是有效的，而不仅仅只对 HTML 元素有效。
+
+### EventTarget
+
+target.removeEventListener(type, listener[, useCapture])
+
+### element对象
+
+element.innerHTML 属性设置或获取HTML语法表示的元素的后代。
+
+### node对象
+
+Node.innerText 是一个表示一个节点及其后代的“渲染”文本内容的属性。
+
+Node.insertBefore() 在参考节点之前插入一个节点作为一个指定父节点的子节点。
+
+Node.appendChild() 方法将一个节点添加到指定父节点的子节点列表末尾。
+
+### Document对象
+
+Document.createElement() #添加元素
+Document.createTextNode() #添加文本
+
+### Node/element/document
+
+Node是一个接口，许多DOM类型从这个接口继承，并允许类似地处理（或测试）这些各种类型。
+
+以下接口都从Node继承其方法和属性：
+Document, Element, CharacterData (which Text, Comment, and CDATASection inherit), ProcessingInstruction, DocumentFragment, DocumentType, Notation, Entity, EntityReference
+
+从其父类EventTarget[1]继承属性。
+
+Element是非常通用的基类，所有 Document对象下的对象都继承它. 这个接口描述了所有相同种类的元素所普遍具有的方法和属性。 这些继承自Element并且增加了一些额外功能的接口描述了具体的行为. 例如,  HTMLElement 接口是所有HTML元素的基础接口， 而 SVGElement 接口是所有SVG元素的基本接口.
+
+Document接口表示任何在浏览器中已经加载好的网页，并作为一个入口去操作网页内容（也就是DOM tree）。DOM tree包括像 `<body>` 、`<table>`这样的还有其他的元素。它提供了全局操作document的功能，像获取网页的URL和在document里创建一个新的元素。
