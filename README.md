@@ -15,7 +15,7 @@ TS最大的价值是引入了**接口、类、继承**的编程思想，TypeScri
 
 我们可以使用类似 Gulp，Grunt，WebPack，SystemJS 和 JSPM 这些工具反编译成 Babel 或者 TypeScript。
 
-
+8
 ## 如何理解html语义化
 
 1. 什么是HTML语义化？
@@ -2452,9 +2452,74 @@ B+树的定义十分复杂，因此只简要地介绍B+树：B+树是为磁盘�
 
 ## 事件委托是什么、实现原理是什么、使用它有什么好处
 
-## 标准 DOM 事件的发生流程”
+什么叫事件委托呢？它还有一个名字叫事件代理，JavaScript高级程序设计上讲：事件委托就是利用事件冒泡，只指定一个事件处理程序，就可以管理某一类型的所有事件。
+
+事件委托到底是一个什么原理：
+
+有三个同事预计会在周一收到快递。为签收快递，有两种办法：一是三个人在公司门口等快递；二是委托给前台MM代为签收。现实当中，我们大都采用委托的方案（公司也不会容忍那么多员工站在门口就为了等快递）。前台MM收到快递后，她会判断收件人是谁，然后按照收件人的要求签收，甚至代为付款。这种方案还有一个优势，那就是即使公司里来了新员工（不管多少），前台MM也会在收到寄给新员工的快递后核实并代为签收。
+
+这里其实还有2层意思的：
+
+第一，现在委托前台的同事是可以代为签收的，即程序中的现有的dom节点是有事件的；
+
+第二，新员工也是可以被前台MM代为签收的，即程序中新添加的dom节点也是有事件的。
+
+为什么要用事件委托：
+
+在JavaScript中，添加到页面上的事件处理程序数量将直接关系到页面的整体运行性能，因为需要不断的与dom节点进行交互，访问dom的次数越多，引起浏览器重绘与重排的次数也就越多，就会延长整个页面的交互就绪时间，这就是为什么性能优化的主要思想之一就是减少DOM操作的原因；如果要用事件委托，就会将所有的操作放到js程序里面，与dom的操作就只需要交互一次，这样就能大大的减少与dom的交互次数，提高性能；
+
+浏览器事件委托的原理：
+
+事件委托是利用事件的冒泡原理来实现的，何为事件冒泡呢？就是事件从最深的节点开始，然后逐步向上传播事件，举个例子：页面上有这么一个节点树，div>ul>li>a;比如给最里面的a加一个click点击事件，那么这个事件就会一层一层的往外执行，执行顺序a>li>ul>div，有这样一个机制，那么我们给最外面的div加点击事件，那么里面的ul，li，a做点击事件的时候，都会冒泡到最外层的div上，所以都会触发，这就是事件委托，委托它们父级代为执行事件。
+
+Event对象提供了一个属性叫target，可以返回事件的目标节点，我们成为事件源，也就是说，target就可以表示为当前的事件操作的dom，但是不是真正操作dom，当然，这个是有兼容性的，标准浏览器用ev.target，IE浏览器用event.srcElement，此时只是获取了当前节点的位置，并不知道是什么节点名称，这里我们用nodeName来获取具体是什么标签名，这个返回的是一个大写的，我们需要转成小写再做比较（习惯问题）
+
+## 标准 DOM 事件的发生流程
+
+事件一开始从文档的根节点流向目标对象（捕获阶段），
+然后在目标对向上被触发（目标阶段），
+之后再回溯到文档的根节点（冒泡阶段）。
 
 ## 声明即执行的函数表达式
+
+`function(){ /* code */ }(); // SyntaxError: Unexpected token (`
+`function foo(){ /* code */ }(); // SyntaxError: Unexpected token )`
+立即执行函数（IIFE）
+`(function(){ /* code */ }());`
+为什么这样就能立即执行并且不报错呢？因为在javascript里，括号内部不能包含语句，当解析器对代码进行解释的时候，先碰到了()，然后碰到function关键字就会自动将()里面的代码识别为函数表达式而不是函数声明。
+
+```bash
+# 最常用的两种写法
+(function(){ /* code */ }()); # 老道推荐写法
+(function(){ /* code */ })(); # 当然这种也可以
+
+# 括号和JS的一些操作符（如 = && || ,等）可以在函数表达式和函数声明上消除歧义
+# 如下代码中，解析器已经知道一个是表达式了，于是也会把另一个默认为表达式
+# 但是两者交换则会报错
+var i = function(){ return 10; }();
+true && function(){ /* code */ }();
+0, function(){ /* code */ }();
+
+# 如果你不怕代码晦涩难读，也可以选择一元运算符
+!function(){ /* code */ }();
+~function(){ /* code */ }();
+-function(){ /* code */ }();
++function(){ /* code */ }();
+
+# 你也可以这样
+new function(){ /* code */ }
+new function(){ /* code */ }() // 带参数
+```
+
+### 立即执行函数与闭包的暧昧关系
+
+立即执行函数能配合闭包保存状态。像普通的函数传参一样，立即执行函数也能传参数。如果在函数内部再定义一个函数，而里面的那个函数能引用外部的变量和参数（闭包），利用这一点，我们能使用立即执行函数锁住变量保存状态。
+
+### 我为什么更愿意称它是“立即执行函数”而不是“自执行函数”
+
+### 最后的旁白：模块模式
+
+立即执行函数在模块化中也大有用处。用立即执行函数处理模块化可以减少全局变量造成的空间污染，构造更多的私有变量。
 
 ## 对 DOM 树中节点关系的表示方式比较清楚，关键属性是 childNodes 和 children
 
@@ -2499,3 +2564,434 @@ Document, Element, CharacterData (which Text, Comment, and CDATASection inherit)
 Element是非常通用的基类，所有 Document对象下的对象都继承它. 这个接口描述了所有相同种类的元素所普遍具有的方法和属性。 这些继承自Element并且增加了一些额外功能的接口描述了具体的行为. 例如,  HTMLElement 接口是所有HTML元素的基础接口， 而 SVGElement 接口是所有SVG元素的基本接口.
 
 Document接口表示任何在浏览器中已经加载好的网页，并作为一个入口去操作网页内容（也就是DOM tree）。DOM tree包括像 `<body>` 、`<table>`这样的还有其他的元素。它提供了全局操作document的功能，像获取网页的URL和在document里创建一个新的元素。
+
+## String
+
+String.concat()
+String.endsWith()
+String.includes()
+String.lastIndexOf()
+String.localeCompare()
+String.match()
+String.padEnd()
+String.repeat()
+
+String.substr()
+String.trim()
+
+内插表达式——`Hi\n${name}!`
+
+## 未知高度垂直居中
+
+## 常见vim命令
+
+## 函数去抖，函数节流/防抖和节流及应用场景
+
+## 常见的linux命令，怎么统计一个文件的行数
+
+## 纯css写一个自适应窗口，和qq聊天窗口一样，要求右边定宽，下面定高，中间宽高自适应（纯css2实现）
+
+## FileReader
+
+FileReader 对象允许Web应用程序异步读取存储在用户计算机上的文件（或原始数据缓冲区）的内容，使用 File 或 Blob 对象指定要读取的文件或数据。
+
+其中File对象可以是来自用户在一个`<input>`元素上选择文件后返回的FileList对象,也可以来自拖放操作生成的 DataTransfer对象,还可以是来自在一个HTMLCanvasElement上执行mozGetAsFile()方法后返回结果。
+
+## BFS
+
+## http2.0 头部压缩，服务端推送，单一长连接，多路复用
+
+## for in 和 for of 区别
+
+## $emit 用过吗?
+
+## 强缓存和协商缓存
+
+## 怎么用原生 js 添加类，.className，setAttribute
+
+## 数据库你也会是吧，数据库和文件存储到底是什么区别，数据库的设计思想大概是什么样的
+
+## 移位运算 a<<1
+
+移位时，移出的位数全部丢弃，移出的空位补入的数与左移还是右移有关。如果是左移，则规定补入的数全部是0；如果是右移，还与被移位的数据是否带符号有关。若是不带符号数，则补入的数全部为0；若是带符号数，则补入的数全部等于原数的最左端位上的原数(即原符号位)
+类似于乘除法，左移一位相当于乘以2.两位乘以4
+
+## 如何学习前端的
+
+## js和java语言的不同之处
+
+## 如何实现一个下拉框模糊匹配
+  * 优化
+
+## onclick/addClickListener()区别
+
+## 观察者模式
+
+## mvc/mvvm
+
+## react 相关
+
+## 招行网络科技
+
+### java重载和重写区别
+
+重写(Override)
+
+重写是子类对父类的允许访问的方法的实现过程进行重新编写, 返回值和形参都不能改变。即外壳不变，核心重写！
+
+重写的好处在于子类可以根据需要，定义特定于自己的行为。 也就是说子类能够根据需要实现父类的方法。
+
+重写方法不能抛出新的检查异常或者比被重写方法申明更加宽泛的异常。例如： 父类的一个方法申明了一个检查异常 IOException，但是在重写这个方法的时候不能抛出 Exception 异常，因为 Exception 是 IOException 的父类，只能抛出 IOException 的子类异常。
+
+### jq插件修改，jq插件的使用
+
+使用：script标签引入cdn/git下载文件；commonjs方式require。
+
+修改：下载.js源文件(非.min.js/其他.js)；修改后本地保存，然后引入本地文件。
+
+### 数据库相关
+
+### js闭包
+
+JavaScript 变量可以是局部变量或全局变量。私有变量可以用到闭包。
+闭包是可访问上一层函数作用域里变量的函数，即便上一层函数已经关闭。
+
+### tcp/udp区别
+
+1. tcp面向连接，udp无连接；
+2. 对系统资源要求（tcp较多，udp少）；
+3. udp程序结构简单；
+4. 流模式与数据报模式；
+5. tcp保证数据正确性，udp可能丢包；
+6. tcp保证数据顺序，udp不保证；
+
+### 面向对象-多态
+
+
+
+## javascript事件
+
+HTML事件可以是浏览器行为，也可以是用户行为。
+ HTML 事件的实例：
+ HTML 页面完成加载
+ HTML input 字段改变时
+ HTML 按钮被点击
+
+## javascript:void(0) 含义
+
+javascript:void(0) 中最关键的是 void 关键字， void 是 JavaScript 中非常重要的关键字，
+该操作符指定要计算一个表达式但是不返回值。
+
+href="#"与href="javascript:void(0)"的区别
+
+`#`包含了一个位置信息，默认的锚是#top 也就是网页的上端。而javascript:void(0), 仅仅表示一个死链接。
+在页面很长的时候会使用 # 来定位页面的具体位置，格式为：`# + id`。
+如果你要定义一个死链接请使用 javascript:void(0)。
+
+## 浏览器和服务器通信的全过程
+
+百度的面试氛围很是轻松
+
+## javascript的类型转换（比如"2"*1, "a"*1）。
+
+javascript会调用valueOf来转换为一个基本数据类型，在这种情况下，如果javascript不能通过valueOf转成一个number，会尝试调用toString，然后再转。实在无法转就只能NaN了。
+
+## 说说类的创建、继承和闭包。
+
+new一个Function，继承通过prototype。超类和子类可以通过子类的prototype=new 超类()，然后把prototype的constructor指回子类。
+
+## Get请求最大能多大。
+1. IE
+IE浏览器（Microsoft Internet Explorer） 对url长度限制是2083（2K+53），超过这个限制，则自动截断（若是form提交则提交按钮不起作用）。
+2. firefox
+firefox（火狐浏览器）的url长度限制为 65 536字符，但实际上有效的URL最大长度不少于100,000个字符。
+3. chrome
+chrome（谷歌）的url长度限制超过8182个字符返回本文开头时列出的错误。
+
+## 事件绑定
+
+**W3C**是addEventListener，**IE**是attachEvent。
+attachEvent——兼容：IE7、IE8；不兼容firefox、chrome、IE9、IE10、IE11、safari、opera
+addEventListener——兼容：firefox、chrome、IE、safari、opera；不兼容IE7、IE8
+
+addEventListener共有3个参数，如下所示：`element.addEventListener(type,listener,useCapture)`;
+attachEvent共有2个参数，如下所示：`element.attachEvent(type,listener)`;
+
+* 在浏览器支持上，IE5-8支持前者，IE9+和其他浏览器支持后者。由于原始版本IE并不支持事件的捕获，所以前者只有两个参数：事件类型和处理程序函数。
+
+* 前者采用了带有 'on' 前缀的时间处理程序属性名，而后者不带此前缀。
+
+* 前者允许相同的事件处理程序函数被注册多次。
+
+## 事件捕获方式——捕获模式和冒泡模式的区别。
+
+使用**bubbling(冒泡)模式**，他是从内而外的流程，所以会先执行蓝色元素的click事件再执行红色元素的click事件，
+**capture(捕获)模式**，和bubbling(冒泡)模式相反是由外而内，会先执行红色元素的click事件才执行蓝色元素的click事件。
+
+## 事件冒泡的机制/上层元素想知道到底是从哪个元素起的泡，怎么搞？
+
+事件从事件源逐级向上传递，这一机制就叫事件冒泡机制。
+
+* event 对象的 target 属性指代触发这个 event 的对象。其在冒泡和捕获型事件中的指代与 event.currentTarget 均不同。而 currentTarget 是指当事件在整个DOM中起泡时，找到本次事件的绑定者；而对应 target 指代本次事件的引发者。
+
+## js类型转换
+
+因为在加法运算里，本来优先级就是字符串最高，数值次之，在隐式转换里，除去布尔值之外，大多数的对象都是通过 toString 转换的原始值，JS在拿到原始值之后发现可用，就直接使用了，所以最后转成字符是一件很正常的事情
+
+## 图片轮播的脚本/图片加载比较慢,图片很多，有两万个，怎么办。
+
+## 手写jsonp的实现
+
+```bash
+<script type="text/javascript">
+    function handleRes(data){
+        console.log(data.name + 'is' + data.age + 'years old');
+        //tom is 20 years old
+    }
+</script>
+<script type="text/javascript" src="http://www.baidu.com/person.js"></script>
+```
+
+url http://www.baidu.com/person.js 的代码如下
+
+```bash
+handleRes({name: 'tom', age: 20})
+```
+
+## 封装JSP的方法
+
+1. 利用jQuery发送jsonp请求
+
+```bash
+$.ajax({
+  url: 'xxxxx',   //一个跨域的url
+  type: 'get',
+  dataType: 'jsonp',   //设置服务器返回的数据类型
+  jsonp: 'onJsonPLoad',  //这个值用来配置前面提过的callback，它会拼接到url的后面
+  jsonpCallback: 'handleRes',  //用来设置回调函数名称
+  success: function (res){   //这里的success回调就相当于之前写到的handleRes方法。
+  console.log(res);
+}})
+```
+
+2. 可能很多小伙伴都不在项目中使用jQuery了，我们可以利用这个 https://github.com/webmodules/jsonp 插件来封装一个发送jsonp请求的方法，这个插件的具体使用方法也很简单大家可以点开链接查看，这里就不做赘述了。
+
+## 手写链表倒数第K个查找
+
+## http请求头，请求体,请求行/cookie在哪个里面？(报文头)url在哪里面（请求url）？
+
+HTTP请求报文由3部分组成（请求行+请求头+请求体）
+
+1. 请求方法
+
+GET和POST是最常见的HTTP方法，除此以外还包括DELETE、HEAD、OPTIONS、PUT、TRACE。
+
+2. Cookie
+
+服务端是怎么知道客户端的多个请求是隶属于一个Session呢？注意到后台的那个jsessionid=5F4771183629C9834F8382E23BE13C4C木有？原来就是通过HTTP请求报文头的Cookie属性的jsessionid的值关联起来的！
+
+HTTP的响应报文也由三部分组成（响应行+响应头+响应体）
+
+## javascript
+
+1. {} == {}/false
+2. [] == []/false
+3. null==undefined/true
+
+## 基本的两列自适应布局
+
+```bash
+<body>
+    <div class="left"></div>
+    <div class="main"></div>
+</body>
+<style>
+    .left {
+        float: left;
+        width: 100px;
+        border: 1px solid black;
+        height: -webkit-fill-available;
+    }
+
+    .main {
+        margin-left: 110px;
+        width: 100%;
+        border: 1px solid black;
+        height: -webkit-fill-available;
+    }
+</style>
+```
+
+```bash
+.left {
+        float: left;
+        margin-right: 10px;
+        width: 100px;
+        border: 1px solid black;
+        height: -webkit-fill-available;
+    }
+
+    .main {
+        overflow: hidden;
+        border: 1px solid black;
+        height: -webkit-fill-available;
+        /* 或overflow：auto */
+    }
+```
+
+## 手写一个jQuery插件
+
+```bash
+/*
+ * tableUI 0.1
+ * Copyright (c) 2009JustinYoung http://justinyoung.cnblogs.com/
+ * Date: 2010-03-30
+ * 使用tableUI可以方便地将表格提示使用体验。先提供的功能有奇偶行颜色交替，鼠标移上高亮显示
+ */
+
+(function ($) {
+    $.fn.yourName = function (options) {
+        //各种属性、参数
+    }
+    var options = $.extend(defaults, options); 
+    //合并多个对象为一个。这里就是，如果你在调用的时候写了新的参数，就用你新的参数，如果没有写，就用默认的参数。
+    this.each(function () {
+        //插件实现代码
+    });
+})(jQuery);
+```
+
+## jq的好处
+
+1. 快速上手（学习成本低）
+2. 开发效率高（选择器、批量操作 DOM、链型操作……）
+3. 一系列的封装（动画、ajax）
+4. 浏览器兼容（1.x版本 兼容IE6、7、8）
+
+5. jQuery 里有一个插件机制，就是利用$.fn 可以扩展 jQuery 的方法，做到自己定制 jQuery
+6. jq源码分析——https://www.cnblogs.com/liangyin/p/7764248.html
+
+## 对前端路由的理解？前后端路由的区别？
+
+在提倡前后端分离的情况下，前端相对原来接手了更多的处理逻辑，包括路由。 如果使用react等前端框架建站的话，建议使用前端路由，在前端路由跳转中，始终能够保证是单页应用（SPA），后端更多是提供数据请求接口。
+
+区别在于express是服务器端的路由，也就是说需要向后台服务器发送请求，然后服务器来决定来render那个.html，这也就是最早的mvc架构模式，而前端的路由是将这一过程放在浏览器端，也就是前台写js代码控制，不在请求服务器，前台一般利用histroy和hash来控制，达到不刷新页面可以使显示内容发生变化，这样好处是js代码不发生变化(浏览器端可以维护一个稳定的model)；一般单页应用就是前台来控制路由，这样速度更快，用户体验更好。单页应用还将模板拿到了浏览器端，从而解放了服务端，服务端趋于服务化。
+
+## 前后端分离的意义以及对前端工程化的理解
+
+1. 提高工作效率，低耦合，提高工作效率，每人明确分工；
+2. 彻底解放前端，前端不再需要向后台提供模板或是后台在前端html中嵌入后台代码
+3. 提高工作效率，分工更加明确；
+4. 局部性能提升
+5. 降低维护成本
+
+## 介绍一下webpack和gulp，以及项目中具体的使用
+
+* gulp
+
+gulp强调的是前端开发的工作流程，我们可以通过配置一系列的task，定义task处理的事务（例如文件压缩合并、雪碧图、启动server、版本控制等），然后定义执行顺序，来让gulp执行这些task，从而构建项目的整个前端开发流程。
+gulp严格上讲，模块化不是他强调的东西，他旨在规范前端开发流程。
+
+* webpack
+
+webpack是一个前端模块化方案，更侧重模块打包，我们可以把开发中的所有资源（图片、js文件、css文件等）都看成模块，通过loader（加载器）和plugins（插件）对资源进行处理，打包成符合生产环境部署的前端资源。
+webpack更是明显强调模块化开发，而那些文件压缩合并、预处理等功能，不过是他附带的功能。
+
+gulp与webpack上是互补的，还是可替换的，取决于你项目的需求。如果只是个vue或react的单页应用，webpack也就够用；如果webpack某些功能使用起来麻烦甚至没有（雪碧图就没有），那就可以结合gulp一起用。
+
+## 前端以后会朝哪个方向发展？
+
+就像你刚才说的一样，单页面应用会继续火，react和vue接下来几年依然会流行，webpack和gulp这些工具也会变得更加简单，后端的逻辑会更多放到前端来做
+
+## 前一面没有答好的问题，下一面依然很可能问你，所以做好总结。
+
+## 手写一个js的深克隆
+
+1. JSON.parse(JSON.stringify(data))
+2. $.extend(deep, [], obj)
+3. 自己手写进行实现
+
+## 手写归并排序
+
+## 手写一个promise版的ajax
+
+```bash
+function ajax(method, url, data) {
+    var request = new XMLHttpRequest();
+    return new Promise(function (resolve, reject) {
+        request.onreadystatechange = function () {
+            if (request.readyState === 4) {
+                if (request.status === 200) {
+                    resolve(request.responseText);
+                } else {
+                    reject(request.status);
+                }
+            }
+        };
+        request.open(method, url);
+        request.send(data);
+    });
+}
+
+
+var log = document.getElementById('test-promise-ajax-result');
+var p = ajax('GET', '/api/categories');
+p.then(function (text) { 
+    # 如果AJAX成功，获得响应内容
+    log.innerText = text;
+}).catch(function (status) { 
+    # 如果AJAX失败，获得响应代码
+    log.innerText = 'ERROR: ' + status;
+});
+```
+
+## AMD和CMD，commonJS的区别
+
+**CommonJS**定义的模块分为:{模块引用(require)} {模块定义(exports)} {模块标识(module)}
+
+1. 定义模块
+
+根据CommonJS规范，一个单独的文件就是一个模块。每一个模块都是一个单独的作用域，也就是说，在该模块内部定义的变量，无法被其他模块读取，除非定义为global对象的属性
+
+2. 模块输出：
+
+模块只有一个出口，module.exports对象，我们需要把模块希望输出的内容放入该对象
+
+3. 加载模块：
+
+加载模块使用require方法，该方法读取一个文件并执行，返回文件内部的module.exports对象
+
+**AMD**
+AMD 即Asynchronous Module Definition，中文名是异步模块定义的意思。它是一个在浏览器端模块化开发的规范
+
+由于不是JavaScript原生支持，使用AMD规范进行页面开发需要用到对应的库函数，也就是大名鼎鼎RequireJS，实际上AMD 是 RequireJS 在推广过程中对模块定义的规范化的产出
+
+requireJS主要解决两个问题
+* 多个js文件可能有依赖关系，被依赖的文件需要早于依赖它的文件加载到浏览器
+* js加载的时候浏览器会停止页面渲染，加载文件越多，页面失去响应时间越长
+
+**CMD**
+CMD 即Common Module Definition通用模块定义，CMD规范是国内发展出来的，就像AMD有个requireJS，CMD有个浏览器的实现SeaJS，SeaJS要解决的问题和requireJS一样，只不过在模块定义方式和模块加载（可以说运行、解析）时机上有所不同.
+
+**AMD与CMD区别**
+最明显的区别就是在模块定义时对依赖的处理不同
+1、AMD推崇依赖前置，在定义模块的时候就要声明其依赖的模块
+2、CMD推崇就近依赖，只有在用到某个模块的时候再去require
+
+## postison的几种属性
+
+## 事件委托原理
+
+## 原型继承的几种方式
+
+## 低版本浏览器不支持HTML5标签怎么解决？
+
+方法1.传统引入js包
+方法2.在hmtl 加入（推荐）
+
+```bash
+/*html5 tag*/
+<!--[if lt IE 9]>
+	    <script>(function(tags){for(var i=0; i<tags.length; i++)document.createElement(tags[i]);})(["article","aside","details","figcaption","figure","footer","header","hgroup","nav","section","menu","video"]);</script>
+<![endif]-->
+```

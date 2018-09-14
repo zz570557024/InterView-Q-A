@@ -797,3 +797,410 @@ console.log(arr.length-num);
     </script>
 </body>
 ```
+
+## ES7异步
+
+```bash
+const sleep = (timeountMS) => new Promise((resolve) => {
+    setTimeout(resolve, timeountMS);
+});
+
+(async () => {  // 声明即执行的 async 函数表达式
+    for (var i = 0; i < 5; i++) {
+        await sleep(1000);
+        console.log(new Date, i);
+    }
+
+    await sleep(1000);
+    console.log(new Date, i);
+})();
+```
+
+## 牛牛的老师给出了一个区间的定义:对于x ≤ y,[x, y]表示x到y之间(包括x和y)的所有连续整数集合。例如[3,3] = {3}, [4,7] = {4,5,6,7}.牛牛现在有一个长度为n的递增序列,牛牛想知道需要多少个区间并起来等于这个序列。
+
+```bash
+var input = '5';
+var input2 = '1 3 5 6 7';
+
+var arr = input2.split(' ');
+var count = 0;
+
+for (var i=0; i<arr.length; i++) {
+    if (Number(arr[i+1]) - Number(arr[i]) > 1) {
+        count++
+    }
+}
+
+console.log(count+1);
+```
+
+## 牛牛举办了一场数字游戏,有n个玩家参加这个游戏,游戏开始每个玩家选定一个数,然后将这个数写在纸上(十进制数,无前缀零),然后接下来对于每一个数字将其数位按照非递减顺序排列,得到新的数,新数的前缀零将被忽略。得到最大数字的玩家赢得这个游戏。 
+
+```bash
+var input = '3';
+var input2 = '9638 8210 331';
+
+var arr = input2.split(' ');
+var arr2 = [];
+var newArr = [];
+
+arr.forEach((el) => {
+    arr2.push(Array.from(el));
+})
+
+for (var i = 0; i < arr2.length; i++) {
+    arr2[i].sort((a, b) => {
+        return a - b;
+    })
+    newArr.push(Number(arr2[i].join('')));
+}
+
+console.log(Math.max.apply(Math, newArr));
+```
+
+## 扑克牌游戏大家应该都比较熟悉了，一副牌由54张组成，含3~A，2各4张，小王1张，大王1张。牌面从小到大用如下字符和字符串表示（其中，小写joker表示小王，大写JOKER表示大王）:) 
+
+3 4 5 6 7 8 9 10 J Q K A 2 joker JOKER 
+输入两手牌，两手牌之间用“-”连接，每手牌的每张牌以空格分隔，“-”两边没有空格，如：4 4 4 4-joker JOKER
+请比较两手牌大小，输出较大的牌，如果不存在比较关系则输出ERROR
+
+基本规则：
+（1）输入每手牌可能是个子，对子，顺子（连续5张），三个，炸弹（四个）和对王中的一种，不存在其他情况，由输入保证两手牌都是合法的，顺子已经从小到大排列；
+（2）除了炸弹和对王可以和所有牌比较之外，其他类型的牌只能跟相同类型的存在比较关系（如，对子跟对子比较，三个跟三个比较），不考虑拆牌情况（如：将对子拆分成个子）
+（3）大小规则跟大家平时了解的常见规则相同，个子，对子，三个比较牌面大小；顺子比较最小牌大小；炸弹大于前面所有的牌，炸弹之间比较牌面大小；对王是最大的牌；
+（4）输入的两手牌不会出现相等的情况。
+
+答案提示：
+（1）除了炸弹和对王之外，其他必须同类型比较。
+（2）输入已经保证合法性，不用检查输入是否是合法的牌。
+（3）输入的顺子已经经过从小到大排序，因此不用再排序了.
+
+```bash
+var input = '4 4 4 4-joker JOKER';
+
+var first = input.split('-')[0];
+var second = input.split('-')[1];
+
+var type = ['one', 'two', 'five', 'three', 'four', 'king'];
+var sort = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2', 'j', 'J'];
+
+var arr1 = first.split(' ');
+var arr2 = second.split(' ');
+
+var type1 = arrType(arr1);
+var type2 = arrType(arr2);
+
+if (type1 == type2) {
+    var a = sort.indexOf(arr1[0])
+    var b = sort.indexOf(arr2[0])
+    if (a>b) {
+        console.log(first);
+    } else {
+        console.log(second);
+    }
+
+} else if (type1=='four'||type2=='four'||type1=='king'||type2=='king') {
+    if (type1=='king') {
+        console.log(first);
+    } else if (type2=='king') {
+        console.log(second);
+    } else if (type1=='four') {
+        console.log(first);
+    } else {
+        console.log(second);
+    }
+
+} else {
+    console.log('ERROR')
+}
+
+function arrType (arr) {
+    switch (arr.length) {
+        case 1:
+            return type[0]; 
+        case 2:
+            if (arr[0] == 'joker') {
+                return type[5];
+            } else {
+                return type[1];
+            }
+        case 3:
+            return type[3];
+        case 5:
+            return type[2];
+        case 4:
+            return type[4];
+        default:
+            break;
+    }
+}
+```
+
+## 
+
+```bash
+while (line = readline()) {
+    var line1 = line.split(" ");
+    var n = Number(line1[0]);
+    var m = Number(line1[1]);
+    var score = [];
+    var arr = readline().split(" ");
+    arr.forEach((el) => {
+        score.push(Number(el))
+    })
+
+    for (var i = 0; i < m; i++) {
+        var line = readline().split(" ");
+        var a = Number(line[1]);
+        var b = Number(line[2]);
+        if (line[0] == 'Q') {
+            if (a > b) {
+                var temp = a;
+                a = b;
+                b = temp;
+            }
+            var max = 0;
+            for (var j = a - 1; j < b; j++) {
+                if (max < score[j]) {
+                    max = score[j];
+                }
+            }
+            console.log(max);
+        } else {
+            score[a - 1] = b;
+        }
+    }
+}
+```
+
+## 有这样一道智力题：“某商店规定：三个空汽水瓶可以换一瓶汽水。小张手上有十个空汽水瓶，她最多可以换多少瓶汽水喝？”答案是5瓶，方法如下：先用9个空瓶子换3瓶汽水，喝掉3瓶满的，喝完以后4个空瓶子，用3个再换一瓶，喝掉这瓶满的，这时候剩2个空瓶子。然后你让老板先借给你一瓶汽水，喝掉这瓶满的，喝完以后用3个空瓶子换一瓶满的还给老板。如果小张手上有n个空汽水瓶，最多可以换多少瓶汽水喝？ 
+
+```bash
+var input = '3';
+var input2 = '10';
+var input3 = '81';
+
+var arr = [];
+var count = 0;
+arr.push(input);
+arr.push(input2);
+arr.push(input3);
+
+for (var i = 0; i < arr.length; i++) {
+    var num = Number(arr[i]);
+    compete(count, num);
+}
+
+function compete(count, num) {
+    var use = Math.floor(num / 3);
+    count = count + use;
+    var next = use + num % 3;
+    if (next > 2) {
+        compete(count, next)
+    } else if (next == 2) {
+        count = count + 1;
+        console.log(count);
+        count = 0;
+    } else {
+        console.log(count);
+        count = 0;
+    }
+}
+```
+
+## 有一个数组a[N]顺序存放0~N-1，要求每隔两个数删掉一个数，到末尾时循环至开头继续进行，求最后一个被删掉的数的原始下标位置。以8个数(N=7)为例:｛0，1，2，3，4，5，6，7｝，0->1->2(删除)->3->4->5(删除)->6->7->0(删除),如此循环直到最后一个数被删除。
+
+```bash
+var input = '249';
+var data = [];
+
+for (var i = 0; i < Number(input); i++) {
+    data.push(i);
+}
+
+function third (array) {
+    for (var j = 2; j < array.length; j=j+3) {
+        array[j] = 'a';
+    }
+    delet(array);
+}
+
+function delet (array) {
+    var temp = [];
+    for (var k=0;k<array.length; k++) {
+        if (array[k] != 'a') {
+            temp.push(array[k]);
+        }
+    }
+    data = [];
+    for (var p=0; p<temp.length; p++) {
+        data.push(temp[p])
+    }
+    console.log(data)
+}
+
+while(data.length > 3) {
+    third(data);
+}
+
+console.log(data[2])
+```
+
+##  有一个数组a[N]顺序存放0~N-1，要求每隔两个数删掉一个数，到末尾时循环至开头继续进行，求最后一个被删掉的数的原始下标位置。以8个数(N=7)为例:｛0，1，2，3，4，5，6，7｝，0->1->2(删除)->3->4->5(删除)->6->7->0(删除),如此循环直到最后一个数被删除。
+
+```bash
+var length = 8;
+var arr = []
+
+for (var i = 0; i < length; i++) {
+    arr.push(i)
+}
+
+var index = 0
+
+while (arr.length > 1) {
+    index = (index + 2) % arr.length
+    arr.splice(index, 1) //数组删除
+    console.log(arr)
+}
+
+console.log(arr[0])
+```
+
+# LeetCode
+
+##
+
+```bash
+console.log(groupAnagrams(["eat", "tea", "tan", "ate", "nat", "bat"]))
+
+function groupAnagrams (strs) {
+    var arr = [];
+    var set = [];
+    var output = [];
+
+    for (var i = 0; i < strs.length; i++) {
+        var sortArr = strs[i].split('')
+        sortArr.sort((a,b) => {
+            return a > b;
+        })
+        sortArr = sortArr.join('');
+        arr.push(sortArr);
+    }
+    for (var j = 0; j < arr.length; j++) {
+        if (set.indexOf(arr[j]) == -1) {
+            set.push(arr[j]);
+        }
+    }
+
+    for( var k = 0; k < arr.length; k++) {
+        var index = set.indexOf(arr[k]);
+        output[index] = [];
+    }
+    for( var k = 0; k < arr.length; k++) {
+        var index = set.indexOf(arr[k]);
+        output[index].push(strs[k]);
+    }
+
+    return output;
+};
+```
+
+## 
+
+```bash
+var L = 1;
+var R = 2;
+var i = 0;
+var X, Y, Xs, Ys;
+
+var C = 2 * Math.PI * R;
+while (L > R) {
+    L = L - R;
+    i++;
+}
+
+var degree = (L / C) * 360;
+
+switch (Math.floor(degree / 90)) {
+    case 0:
+        X = R * Math.cos(degree * Math.PI / 180);
+        Y = R * Math.sin(degree * Math.PI / 180);
+        break;
+    case 1:
+        X = R * Math.cos((180 - degree) * Math.PI / 180) * -1;
+        Y = R * Math.sin((180 - degree) * Math.PI / 180);
+    case 2:
+        X = R * Math.cos((degree - 180) * Math.PI / 180) * -1;
+        Y = R * Math.sin((degree - 180) * Math.PI / 180) * -1;
+    case 3:
+        X = R * Math.cos((360 - degree) * Math.PI / 180);
+        Y = R * Math.sin((360 - degree) * Math.PI / 180) * -1;
+    default:
+        break;
+}
+
+console.log('顺时针', X.toFixed(3), Y.toFixed(3));
+console.log('逆时针', X.toFixed(3), Y.toFixed(3) * -1);
+```
+
+## js二维数组全排列
+
+```bash
+function serialArray(arr) {
+	var lengthArr = [];
+	var productArr = [];
+	var result = [];
+	var length = 1;
+	for (var i = 0; i < arr.length; i++) {
+		var len = arr[i].length;
+		lengthArr.push(len);
+		var product = i === 0 ? 1 : arr[i - 1].length * productArr[i - 1];
+		productArr.push(product);
+		length *= len;
+	}
+	for (var i = 0; i < length; i++) {
+		var resultItem = '';
+		for (var j = 0; j < arr.length; j++) {
+			resultItem += arr[j][Math.floor(i / productArr[j]) % lengthArr[j]];
+		}
+		result.push(resultItem);
+	}
+	return result
+}
+```
+
+## 冒泡排序
+
+```bash
+function maopao (nums) {
+	for (var i=0; i<nums.length-2; i++) {
+		for (var j = 0, s = nums.length-1-i; j<s ;j++) {
+			if (nums[j] < nums[j+1]) {
+				var temp = nums[j];
+				nums[j] = nums[j+1];
+				nums[j+1] = temp;
+			}
+		}
+	}
+
+	return nums;
+}
+```
+
+## 选择排序
+
+```bash
+function maopao (nums) {
+	var sort = [];
+	for (var i=0; i<nums.length;) {
+		var max = Math.max.apply(Math, nums);
+		sort.push(max);
+		nums.splice(nums.indexOf(max), 1);
+	}
+
+	return sort;
+}
+```
+
+## linux tcpdump监听网卡eth0,对方主机IP为10.1.1.180,tcp端口为80的数据,相应命令为
