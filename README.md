@@ -2995,3 +2995,21 @@ CMD 即Common Module Definition通用模块定义，CMD规范是国内发展出�
 	    <script>(function(tags){for(var i=0; i<tags.length; i++)document.createElement(tags[i]);})(["article","aside","details","figcaption","figure","footer","header","hgroup","nav","section","menu","video"]);</script>
 <![endif]-->
 ```
+
+## 箭头函数
+
+ES6中的箭头函数会直接调用的this是继承父级的this。
+
+## js原型链的理解
+
+每个函数都有一个prototype(原型)属性，这个属性是一个指针，一个对象。无论什么时候，我们只要创建一个新函数，就会根据一组特定的规则为该函数创建一个prototype属性，这个属性对象指向函数的原型对象。在默认情况下，所有原型对象都会自动获得一个 constroctor（构造函数）属性，这个属性包含一个指向prototype属性所在函数的指针。
+
+1、所有的函数都是 Function 的实例。
+
+2、在构造函数上都有一个原型属性 prototype，该属性也是一个对象；
+
+3、那么在原型对象上有一个 constructor 属性，该属性指向的就是构造函数；
+
+4、而实例对象上有一个 _proto_ 属性，该属性也指向原型对象，并且该属性不是标准属性，不可以用在编程中，该属性用于浏览器内部使用。
+
+javascript中，原型也是一个对象，通过原型可以实现对象的属性继承，javascript的对象中都包含了一个protype内部属性，这个属性对应的就是该对象的原型。javascript的原型对象中还包含一个constructor属性，这个属性对应创建所有指向该原型的实例的构造函数。
