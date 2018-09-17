@@ -3209,8 +3209,226 @@ Vue则是通过Vue对象将数据和View完全分离开来了。对数据进行�
 ## css居中问题
 
 块级元素水平居中
+1：margin: 0 auto
 
 element {
    margin: 0 auto;
 }
 
+2：负边距+绝对定位
+
+3： 弹性盒子flexbox：
+
+块级元素垂直居中（元素高度已知）：
+
+1： 利用负边距+绝对定位
+
+.outside {
+        width:720px;
+        height: 720px;
+        margin: 0 auto ;
+        position: relative; /*祖先元素的非static定位*/
+    }
+    .inner {
+        width: 350px;
+        height: 350px;
+        position: absolute;
+        top: 50%; /*元素相对其最近的position属性不为static的元素(祖先元素)移动50%，top、right、bottom 和 left 属性指定定位元素的位置。*/
+        margin-top: -175px; /*元素向上移动自身的50%，此时，正好垂直居中*/
+    }
+
+## href,src区别
+
+href是Hypertext Reference的缩写，表示超文本引用。用来建立当前元素和文档之间的链接。常用的有：link、a。
+
+src是source的缩写，src的内容是页面必不可少的一部分，是引入。src指向的内容会嵌入到文档中当前标签所在的位置。常用的有：img、script、iframe。
+
+sessionid是一个会话的key，浏览器第一次访问服务器会在服务器端生成一个session，有一个sessionid和它对应。tomcat生成的sessionid叫做jsessionid。
+
+## sessionId的作用
+
+sessionID是如何使用的：当客户端第一次请求session对象时候，服务器会为客户端创建一个session，并将通过特殊算法算出一个session的ID，用来标识该session对象
+
+## websocket
+
+WebSocket是HTML5开始提供的一种在单个 TCP 连接上进行全双工通讯的协议。
+在WebSocket API中，浏览器和服务器只需要做一个握手的动作，然后，浏览器和服务器之间就形成了一条快速通道。两者之间就直接可以数据互相传送。
+浏览器通过 JavaScript 向服务器发出建立 WebSocket 连接的请求，连接建立以后，客户端和服务器端就可以通过 TCP 连接直接交换数据。
+当你获取 Web Socket 连接后，你可以通过 send() 方法来向服务器发送数据，并通过 onmessage 事件来接收服务器返回的数据。
+
+```bash
+var Socket = new WebSocket(url, [protocol] );
+```
+
+### Socket.readyState
+
+HTTP 协议有一个缺陷：通信只能由客户端发起。
+
+我们想了解今天的天气，只能是客户端向服务器发出请求，服务器返回查询结果。HTTP 协议做不到服务器主动向客户端推送信息。
+
+* 0 - 表示连接尚未建立。
+* 1 - 表示连接已建立，可以进行通信。
+* 2 - 表示连接正在进行关闭。
+* 3 - 表示连接已经关闭或者连接不能打开。
+
+Socket.send() 使用连接发送数据
+Socket.close() 关闭连接
+
+服务器可以主动向客户端推送信息，客户端也可以主动向服务器发送信息，是真正的双向平等对话，属于服务器推送技术的一种。
+
+其他特点包括：
+
+（1）建立在 TCP 协议之上，服务器端的实现比较容易。
+
+（2）与 HTTP 协议有着良好的兼容性。默认端口也是80和443，并且握手阶段采用 HTTP 协议，因此握手时不容易屏蔽，能通过各种 HTTP 代理服务器。
+
+（3）数据格式比较轻量，性能开销小，通信高效。
+
+（4）可以发送文本，也可以发送二进制数据。
+
+（5）没有同源限制，客户端可以与任意服务器通信。
+
+（6）协议标识符是ws（如果加密，则为wss），服务器网址就是 URL。
+
+send()方法用于向服务器发送数据。
+
+websocketd 的实质，就是命令行的 WebSocket 代理。只要命令行可以执行的程序，都可以通过它与浏览器进行 WebSocket 通信。
+
+常用的 Node 实现有以下三种。
+
+* µWebSockets
+* Socket.IO
+* WebSocket-Node
+
+## 函数防抖和节流
+
+### 函数节流
+
+要解决的问题是，避免处理函数被频繁的触发，让函数每隔一段时间执行一次，当在执行周期内被触发时，不允许被执行，所以直接为函数的执行添加时间间隔就Ok了。
+函数节流应用的实际场景，多数在监听页面元素滚动事件的时候会用到。因为滚动事件，是一个高频触发的事件。以下是监听页面元素滚动的示例代码：
+
+```bash
+// 函数节流
+var canRun = true;
+document.getElementById("throttle").onscroll = function(){
+    if(!canRun){
+        // 判断是否已空闲，如果在执行中，则直接return
+        return;
+    }
+    canRun = false;
+    setTimeout(function(){
+        console.log("函数节流");
+        canRun = true;
+    }, 300);
+};
+```
+
+### 函数防抖
+
+当DOM事件被频繁触发时，在延时周期内，只在最后一次被触发时，执行处理函数，在此之前的触发都不进行处理。
+clearTimeout() 方法可取消由 setTimeout() 方法设置的 timeout。
+
+```bash
+# 函数防抖
+var timer = false;
+document.getElementById("debounce").onscroll = function(){
+    clearTimeout(timer); 
+    # 清除未执行的代码，重置回初始化状态
+    # timer => 由 setTimeout() 返回的 ID 值。该值标识要取消的延迟执行代码块。
+    timer = setTimeout(function(){
+        console.log("函数防抖");
+    }, 300);
+};  
+```
+
+函数防抖的要点，也是需要一个setTimeout来辅助实现。延迟执行需要跑的代码。
+
+## 前端模块管理器简介
+
+### 初期
+
+最早也是最有名的前端模块管理器，非RequireJS莫属。它采用AMD格式，异步加载各种模块。
+
+## Webpack 核心概念
+
+Webpack 是一个可以将前端模板引擎、预处理语言、JavaScript 模块进行合并、压缩、打包最终成为能被JavaScript 引擎识别可以在浏览器端正常运行的文件。
+
+Entry：入口文件，Webpack 执行构建的过程将从这里开始。给定入口文件，Webpack 会分析所有依赖到的静态资源并加载相应代码进行处理，最终打包成指定的文件输出到目标文件夹中。
+
+Output：与Entry 相对应，Output 可以配置打包完成后输出的文件位置及文件名等信息。
+
+Module：配置处理模块的规则。Module 通常会包含一个Loader 数组，那Loader 在这个过程中起什么作用呢？Webpack 本身只能理解JavaScript，但是却可以打包Sass、Less、png 等非 JS 资源，主要是因为在加载这些资源前都会链式调用 loader 进行预处理，将其转换成 Webpack可以理解的JavaScript 模块。
+
+Resolve：配置寻找模块的规则。在这个选项中可以配置查找文件的扩展名和文件别名等。
+
+Plugins：配置扩展插件，用于扩展Webpack 的功能。大量的Plugins 插件几乎可以让Webpack 完成任何与构建相关的任务。
+
+DevServer：在本地启用一个HTTP 服务器监听特定的端口，供开发时测试与调试使用。
+
+**Webpack的处理速度更快更直接，能打包更多不同类型的文件。**
+
+```bash
+module.exports = {
+  entry:  __dirname + "/app/main.js", #已多次提及的唯一入口文件
+  output: {
+    path: __dirname + "/public", #打包后的文件存放的地方
+    filename: "bundle.js" #打包后输出文件的文件名
+  }
+}
+```
+
+### 使用webpack构建本地服务器
+
+`npm install --save-dev webpack-dev-server`
+
+loader:
+
+* test：一个用以匹配loaders所处理文件的拓展名的正则表达式（必须）
+* loader：loader的名称（必须）
+* include/exclude:手动添加必须处理的文件（文件夹）或屏蔽不需要处理的文件（文件夹）（可选）；
+* query：为loaders提供额外的设置选项（可选）
+
+### Babel
+
+Babel其实是一个编译JavaScript的平台，它可以编译代码帮你达到以下目的：
+
+* 让你能使用最新的JavaScript代码（ES6，ES7...），而不用管新标准是否被当前使用的浏览器完全支持；
+* 让你能使用基于JavaScript进行了拓展的语言，比如React的JSX；
+
+Babel其实是几个模块化的包，其核心功能位于称为babel-core的npm包中，webpack可以把其不同的包整合在一起使用，对于每一个你需要的功能或拓展，你都需要安装单独的包（用得最多的是解析Es6的babel-env-preset包和解析JSX的babel-preset-react包）。
+
+## http2.0
+
+HTTP/2是HTTP协议自1999年HTTP 1.1发布后的首个更新，主要基于SPDY协议（是Google开发的基于TCP的应用层协议，用以最小化网络延迟，提升网络速度，优化用户的网络使用体验）。
+
+## 二进制帧层
+
+性能提升的核心在于二进制帧层.它指HTTP消息在客户端和服务端如何封装和传输.
+
+3. 流,消息，帧
+接下来介绍二进制帧机制来明白数据如何在客户端和服务端交换的。
+
+4. 请求和响应的多路复用
+
+5. 流的优先级.
+
+5. 流量控制
+
+流量控制是一种机制,用来阻止发送者发送大量的接收者不需要,或者没能力处理的数据.接收者可能会在重负下很繁忙,或者只愿意分配固定的资源给特定的流.例如,客户端可能以高的优先级请求大量的视频数据,然后用户暂停了视频,那么客户端现在想要停止或者减少服务端的传输来避免取和缓存没必要的数据.或者一个代理服务器连接有很快的下流,很慢的上流,同样的也要控制以多大的流速传输数据,从而匹配上流的速度,从而控制资源的使用.
+
+6. 服务端推送
+
+7. 头部压缩
+
+#### HTTP1.0的缺陷
+
+* 每个请求都需单独建立连接（keep-alive能解决部分问题单不能交叉推送）
+* 每个请求和响应都需要完整的头信息
+* 数据未加密
+
+#### HTTP2.0的优势
+
+* 多路复用
+* 压缩头信息
+* 请求划分优先级
+* 支持服务器端主动推送
